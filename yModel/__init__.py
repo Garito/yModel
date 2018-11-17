@@ -83,7 +83,7 @@ def consumes(model, many = None, from_ = "json"):
         raise InvalidRoute(func.__name__)
 
       modelObj = getattr(args[1].app.models, model if isinstance(model, str) else model.__name__)(many = many)
-      modelObj.load(getattr(args[1], from_))
+      modelObj.load(getattr(args[1], from_), many = many)
       errors = modelObj.get_errors()
       if errors:
         raise AttributeError(errors)

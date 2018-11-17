@@ -85,7 +85,7 @@ The ```deprecated``` decorator will be mostly useful with the yOpenSanic to mark
 This decorators will help later for introspection since the tree structures are tricky to instrospect
 
 ## Installation
-```pip install -e git+http://github.com/Garito/yModel#egg=yModel```
+```pip install yModel```
 
 ## Tree structures
 Add a ```path``` and ```name``` fields to build the materialized path or add a ```@pre_load``` function if you need a different source for the slug (it's using [python-slugify](https://github.com/un33k/python-slugify) but you can use any one else if you add your own ```@pre_load``` function)

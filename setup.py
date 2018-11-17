@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def readme():
   with open("README.md") as f:
@@ -9,10 +9,10 @@ setup(
   version = "0.0.1",
   description = "Marshmallow subclasses with extended features",
   long_description = readme(),
+  long_description_content_type='text/markdown',
   classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Plugins",
-    "Framework :: ySanic",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -23,7 +23,8 @@ setup(
   author = "Garito",
   author_email = "garito@gmail.com",
   license = "MIT",
-  packages = ["yModel"],
+  packages = find_packages(),
+  python_requires=">=3.6",
   install_requires = [
     "marshmallow",
     "motor",
