@@ -170,7 +170,7 @@ class TestRemoveField(AioTestCase):
     model = models.AnotherMongo(self.table)
     model.load(data)
 
-    with self.assertRaises(InvalidOperation):
+    with self.assertRaises(AttributeError):
       await model.remove_field("finished")
 
   async def test(self):
@@ -206,7 +206,7 @@ class TestDelete(AioTestCase):
     model = models.MinimalMongo(self.table)
     model.load(data)
 
-    with self.assertRaises(InvalidOperation):
+    with self.assertRaises(AttributeError):
       await model.delete()
 
   async def test(self):

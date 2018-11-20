@@ -1,5 +1,4 @@
 from json import loads, dumps
-
 from functools import wraps
 
 from marshmallow import Schema as mSchema, pre_load, fields
