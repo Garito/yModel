@@ -36,4 +36,4 @@ Better validation flow in the same way that with ```consumes```
 
 #### MongoDB model
 DateTime is not longer needed since the original field has everything we need
-The tree update now returns the model of the modifications validated
+The update now returns the model of the modifications validated

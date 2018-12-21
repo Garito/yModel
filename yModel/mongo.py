@@ -155,20 +155,21 @@ class MongoTree(MongoSchema, Tree):
     return elements
 
   async def create_child(self, child, as_, indexer = "slug"):
-    if child.__class__.__name__ == self.children_models[as_]:
-      # self_data = self.get_data()
-      # items = self_data.get(as_, None)
-      items = getattr(self, as_, None)
-      if items is None:
-        raise NotFound("{} has no {} as children".format(self.__class__.__name__, as_))
+    if not self.table:
+      raise InvalidOperation("No table")
 
+    if child.__class__.__name__ == self.children_models[as_]:
       child.table = self.table
-      await child.create()
-      items.append(getattr(child, "_id" if isinstance(self.fields[as_].container, ObjectId) else indexer))
-      query = {}
-      query[as_] = items
       # start transaction
-      await self.table.update_one({"_id": self._id}, {"$set": query})
+      async with await self.table.database.client.start_session() as s:
+        async with s.start_transaction():
+          await child.create()
+          items = getattr(self, as_, None)
+          if items is not None:
+            items.append(getattr(child, "_id" if isinstance(self.fields[as_].container, ObjectId) else indexer))
+            query = {}
+            query[as_] = items
+            await self.table.update_one({"_id": self._id}, {"$set": query})
       # end transaction
       return child.to_plain_dict()
     else:
