@@ -110,6 +110,8 @@ class MongoSchema(Schema):
     result = self.table.update_one({"_id": self._id}, {"$set": data})
     self.__data__.update(data)
 
+    return model
+
   async def remove_field(self, field):
     if not self.table:
       raise InvalidOperation("No table")

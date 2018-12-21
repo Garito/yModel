@@ -1,6 +1,7 @@
 # yModel's change log
 ## 0.0.2
 ### Bug fixes
+#### Base model
 Consume wasn't respecting the many attribute when loading the input data
 
 Corrected two test to reflect the change of the raised error
@@ -23,3 +24,16 @@ description is used to describe the consumer for documentation/openapi purposes
 It raises a better exception if the model can't validate the data
 
 Better detection of request in the decorators
+
+The decorator ```produces```now accept renderer and description in a similar manner than ```consumes```
+Since it is an output decorator, it has renderer instead of getter, to allow to customize the way that it renders the produced result
+It is possible to use the name of the model instead of the model itself in the declaration. This allows to use a model not yet declared or declared anywhere else (example Auth that belongs to yAuth package but allows to personalize visible info for the user)
+Better validation flow in the same way that with ```consumes```
+
+```can_crash``` now accept the same new arguments that ```produces``` (renderer and description) for the same reason
+
+```deprecated``` want to know the reason for the deprecation
+
+#### MongoDB model
+DateTime is not longer needed since the original field has everything we need
+The tree update now returns the model of the modifications validated
