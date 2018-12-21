@@ -19,8 +19,8 @@ class Person(Schema):
 
   @can_crash(Exception, ErrorSchema, 404)
   @can_crash(ValidationError, ErrorSchema)
-  @consumes(NameOnlyRequestSchema)
   @produces(NameOnlyOkSchema, as_ = "name")
+  @consumes(NameOnlyRequestSchema)
   async def set_name(self, request, schema):
     if schema.get_data()["name"] == "Exception":
       raise Exception("It can crash from a regular Exception")
@@ -31,7 +31,7 @@ class Person(Schema):
     self.get_data()["name"] = schema.get_data()["name"]
     return self.get_data["name"]
 
-  @deprecate()
+  @deprecate("Reason to deprecate it")
   async def to_deprecate(self, request):
     return True
 ```

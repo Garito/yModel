@@ -249,17 +249,38 @@ class MongoTree(MongoSchema, Tree):
 
     return model
 
-  async def delete(self):
+  async def delete(self, models = None):
     if not self.table:
       raise InvalidOperation("No table")
 
     path = self.get_url()
-    client = self.table.database.client
-    async with await client.start_session() as s:
+    async with await self.table.database.client.start_session() as s:
       async with s.start_transaction():
         # start transaction
-        # Hay poca documentacion pero parece que hay que pasarle la sesion para que entren en la
-        # transaccions asi que aqui no estarian en la transaccion
-        await super(MongoTree, self).delete()
+        # update parent
+        parent = await self.ancestors(models, True)
+        if parent:
+          # look_at is the list of members of self of type model_name (everyone where I can put of this type)
+          look_at = parent.children_of_type(self.__class__.__name__)
+
+          if look_at:
+            # search on them to see if self is there and annotate to update the new slug
+            to_set = {}
+            for child in look_at:
+              try:
+                orig = getattr(parent, child)
+                # if self is not indexed in this parent's member it will crash with ValueError (which is ok cause we only care when it's found)
+                # when we put _id instead of slug we don't need to update the index so its ok too that will crash
+                index = orig.index(self.slug)
+                orig.pop(index)
+                to_set[child] = orig
+              except ValueError:
+                pass
+
+            if to_set:
+              await parent.table.update_one({"_id": parent._id}, {"$set": to_set})
+        # delete children
         await self.table.delete_many({"path": {"$regex": "^{}".format(path)}})
+        # delete itself
+        await super().delete()
         # end transaction
