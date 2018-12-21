@@ -75,6 +75,15 @@ class ErrorSchema(Schema):
   code = fields.Int(required = True)
 
 def consumes(model, many = None, from_ = "json"):
+class OkResult(OkSchema):
+  result = fields.Str(required = True)
+
+class OkDictResult(OkSchema):
+  result = fields.Dict(required = True)
+
+class OkListResult(OkSchema):
+  result = fields.List(fields.Dict, required = True)
+
   def decorator(func):
     if not hasattr(func, "__decorators__"):
       func.__decorators__ = {}

@@ -10,3 +10,8 @@ By default slugifies the name but you can define a ```slugable``` member with th
 
 You can now exclude fields before to_json and to_plain_dict
 It is useful for not send the user's password field for instance
+
+OkResult that returns a structure like {"ok": True, result: <your result>}
+OkListResult that returns a list @ result and
+OkDictResult that returns a dict instead
+are now available
