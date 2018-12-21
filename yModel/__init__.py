@@ -159,14 +159,14 @@ def produces(model, many = None, as_ = None, renderer = None, description = None
     return decorated
   return decorator
 
-def can_crash(exc, model = ErrorSchema, code = 400, description = None):
+def can_crash(exc, model = ErrorSchema, code = 400, renderer = None, description = None):
   def decorator(func):
     if not hasattr(func, "__decorators__"):
       func.__decorators__ = {}
     if "can_crash" not in func.__decorators__:
       func.__decorators__["can_crash"] = {}
 
-    func.__decorators__["can_crash"][exc.__name__] = {"model": model, "exc": exc, "code": code, "description": description}
+    func.__decorators__["can_crash"][exc.__name__] = {"model": model, "exc": exc, "code": code, "renderer": renderer, "description": description}
 
     @wraps(func)
     async def decorated(*args, **kwargs):
@@ -176,7 +176,8 @@ def can_crash(exc, model = ErrorSchema, code = 400, description = None):
       except exc as e:
         modelObj = model()
         modelObj.load({"message": str(e), "code": code})
-        return modelObj
+
+        return modelObj if renderer is None else renderer(modelObj.to_plain_dict())
 
     return decorated
   return decorator
