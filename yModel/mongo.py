@@ -206,50 +206,46 @@ class MongoTree(MongoSchema, Tree):
 
     return children
 
-  async def update_field(self, field, value, models = None):
+  async def update(self, data, models = None):
     if not self.table:
       raise InvalidOperation("No table")
+ 
+    # Start mongo transaction
+    async with await self.table.database.client.start_session() as s:
+      async with s.start_transaction():
+        if "slug" in data and data["slug"] and self.slug != data["slug"]:
+          # update parent
+          parent = await self.ancestors(models, True)
+          # look_at is the list of members of self of type model_name (everyone where I can put of this type)
+          look_at = parent.children_of_type(self.__class__.__name__)
 
-    only = ("name", "slug", ) if field == "name" else (field,)
-    model = self.__class__(self.table, only = only)
-    model.load({field: value})
+          if look_at:
+            # search on them to see if self is there and annotate to update the new slug
+            to_set = {}
+            for child in look_at:
+              try:
+                orig = getattr(parent, child)
+                # if self is not indexed in this parent's member it will crash with ValueError (which is ok cause we only care when it's found)
+                # when we put _id instead of slug we don't need to update the index so its ok too that will crash
+                index = orig.index(self.slug)
+                orig[index] = data["slug"]
+                to_set[child] = orig
+              except ValueError:
+                pass
 
-    errors = model.get_errors()
-    if errors:
-      raise ValidationError("Error validating {}".format(field), field_name = field, errors = errors)
+            if to_set:
+              await parent.table.update_one({"_id": parent._id}, {"$set": to_set})
 
-    # Start transaction
-    if "slug" in only and model.slug != self.slug:
-      # Update parent
-      model_name = self.__class__.__name__
-      parent = await self.ancestors(models, True)
-      look_at = parent.children_of_type(model_name)
-      if not look_at:
-        raise ValidationError("The parent doesn't allow {} as children".format(model_name))
+          # update children
+          url = self.get_url()
+          new_url = "{}/{}".format(("" if self.path == "/" else self.path), data["slug"])
+          async for child in self.table.find({"path": {"$regex": "^{}".format(url)}}):
+            path = child["path"].replace(url, new_url)
+            # TODO: can we bulk this, please?
+            await self.table.update_one({"_id": child["_id"]}, {"$set": {"path": path}})
 
-      to_set = {}
-      for child in look_at:
-        try:
-          orig = getattr(parent, child)
-          index = orig.index(self.slug)
-          orig[index] = model.slug
-          to_set[child] = orig
-        except Exception:
-          pass
-
-      if to_set:
-        parent.table.update_one({"_id": parent._id}, {"$set": to_set})
-
-      # Update children
-      url = self.get_url()
-      new_url = "{}/{}".format(("" if self.path == "/" else self.path), model.slug)
-
-      async for child in self.table.find({"path": {"$regex": "^{}".format(url)}}):
-        path = child["path"].replace(url, new_url)
-        await self.table.update_one({"_id": child["_id"]}, {"$set": {"path": path}})
-
-    result = await self.table.update_one({"_id": self._id}, {"$set": model.get_data()})
-    # end transaction
+        # update itself
+        model = await super().update(data)
 
     return model
 

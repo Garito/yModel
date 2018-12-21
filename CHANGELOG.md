@@ -37,3 +37,6 @@ Better validation flow in the same way that with ```consumes```
 #### MongoDB model
 DateTime is not longer needed since the original field has everything we need
 The update now returns the model of the modifications validated
+All tree operations with multidocument afectation are made in a mongodb transaction (which makes MongoDB 4.x the minimal version to use it)
+children no longer accepts the exclusion of fields (moved to the rendering of the information to the users)
+update_field has been killed in favor of update that allows to update more than just a field
