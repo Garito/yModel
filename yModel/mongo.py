@@ -31,16 +31,6 @@ class ObjectId(fields.Field):
       return missing
     return str(value)
 
-class DateTime(fields.Field):
-  def _deserialize(self, value, attr, data):
-    return value
-
-  def _serialize(self, value, attr, obj):
-    if value is None:
-      return missing
-
-    return value if isinstance(value, str) else value.isoformat(timespec = 'milliseconds')
-
 class Decimal(fields.Field):
   def _deserialize(self, value, attr, data):
     try:
