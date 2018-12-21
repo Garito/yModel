@@ -105,7 +105,7 @@ def consumes(model, many = None, from_ = "json", getter = None, description = No
       modelObj.load(payload, many = many)
       errors = modelObj.get_errors()
       if errors:
-        raise AttributeError(errors)
+        raise ValidationError(errors)
       else:
         listargs = list(args)
         listargs.append(modelObj)
