@@ -91,7 +91,13 @@ def consumes(model, many = None, from_ = "json", getter = None, description = No
 
     @wraps(func)
     async def decorated(*args, **kwargs):
-      if len(args) < 2 and not isinstance(args[1], Request):
+      request = None
+      for arg in args:
+        if hasattr(arg, "app") and hasattr(arg.app, "models"):
+          request = arg
+          break
+
+      if request is None:
         raise InvalidRoute(func.__name__)
 
       modelObj = (getattr(request.app.models, model) if isinstance(model, str) else model)(many = many)
@@ -119,7 +125,13 @@ def produces(model, many = None, as_ = None):
 
     @wraps(func)
     async def decorated(*args, **kwargs):
-      if len(args) < 2 and not isinstance(args[1], Request):
+      request = None
+      for arg in args:
+        if hasattr(arg, "app") and hasattr(arg.app, "models"):
+          request = arg
+          break
+
+      if request is None:
         raise InvalidRoute(func.__name__)
 
       result = await func(*args, **kwargs)
