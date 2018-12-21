@@ -15,3 +15,8 @@ OkResult that returns a structure like {"ok": True, result: <your result>}
 OkListResult that returns a list @ result and
 OkDictResult that returns a dict instead
 are now available
+
+The decorator ```consumes``` now accept two new params: getter and description
+getter is a function that is use to allow to pass a function to extract the information
+Useful to extract headers data or other data in particular places of the request
+description is used to describe the consumer for documentation/openapi purposes

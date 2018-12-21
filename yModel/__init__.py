@@ -74,7 +74,6 @@ class ErrorSchema(Schema):
   message = fields.Str(required = True)
   code = fields.Int(required = True)
 
-def consumes(model, many = None, from_ = "json"):
 class OkResult(OkSchema):
   result = fields.Str(required = True)
 
@@ -84,18 +83,20 @@ class OkDictResult(OkSchema):
 class OkListResult(OkSchema):
   result = fields.List(fields.Dict, required = True)
 
+def consumes(model, many = None, from_ = "json", getter = None, description = None):
   def decorator(func):
     if not hasattr(func, "__decorators__"):
       func.__decorators__ = {}
-    func.__decorators__["consumes"] = {"model": model, "from": from_}
+    func.__decorators__["consumes"] = {"model": model, "many": many, "from": from_, "getter": getter, "description": description}
 
     @wraps(func)
     async def decorated(*args, **kwargs):
       if len(args) < 2 and not isinstance(args[1], Request):
         raise InvalidRoute(func.__name__)
 
-      modelObj = getattr(args[1].app.models, model if isinstance(model, str) else model.__name__)(many = many)
-      modelObj.load(getattr(args[1], from_), many = many)
+      modelObj = (getattr(request.app.models, model) if isinstance(model, str) else model)(many = many)
+      payload = getter(getattr(request, from_)) if getter else getattr(request, from_)
+      modelObj.load(payload, many = many)
       errors = modelObj.get_errors()
       if errors:
         raise AttributeError(errors)
