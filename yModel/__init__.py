@@ -21,6 +21,14 @@ class Schema(mSchema):
 
     raise AttributeError("{} object has no attribute {}".format(self.__class__.__name__, name))
 
+  @pre_load
+  def slug_preload(self, data):
+    if "slug" in self.fields.keys() and ("slug" not in data or not data["slug"]):
+      slugable = self.slugable if hasattr(self, "slugable") else "name"
+      data["slug"] = slugify(data.get(slugable, "")) if isinstance(slugable, str) else slugable(data)
+
+    return data
+
   def load(self, data, many = None, partial = None):
     res = super().load(data, many = many, partial = partial)
     if hasattr(res, "data") and res.data:
@@ -45,14 +53,6 @@ class Schema(mSchema):
     return loads(self.to_json(exclude))
 
 class Tree():
-  @pre_load
-  def preload(self, data):
-    # This if needs to check if the schema has the slug name before generate the slug
-    if "name" in data:
-      data["slug"] = slugify(data["name"])
-
-    return data
-
   def children_of_type(self, type_):
     return [child for child, model in (self.children_models or {}).items() if model == type_]
 
