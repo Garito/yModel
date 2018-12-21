@@ -182,21 +182,16 @@ def can_crash(exc, model = ErrorSchema, code = 400, renderer = None, description
     return decorated
   return decorator
 
-def deprecate():
+def deprecate(reason):
   def decorator(func):
     if not hasattr(func, "__decorators__"):
       func.__decorators__ = {}
-    func.__decorators__["deprecate"] = True
+    func.__decorators__["deprecate"] = reason
 
     @wraps(func)
     async def decorated(*args, **kwargs):
-      try:
-        result = await func(*args, **kwargs)
-        return result
-      except exc as e:
-        modelObj = model()
-        modelObj.load({"message": str(e), "code": code})
-        return modelObj
+      result = await func(*args, **kwargs)
+      return result
 
     return decorated
   return decorator
