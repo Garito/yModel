@@ -117,11 +117,11 @@ def consumes(model, many = None, from_ = "json", getter = None, description = No
     return decorated
   return decorator
 
-def produces(model, many = None, as_ = None):
+def produces(model, many = None, as_ = None, renderer = None, description = None):
   def decorator(func):
     if not hasattr(func, "__decorators__"):
       func.__decorators__ = {}
-    func.__decorators__["produces"] = {"model": model, "many": many, "as_": as_}
+    func.__decorators__["produces"] = {"model": model, "many": many, "as_": as_, "renderer": renderer, "description": description}
 
     @wraps(func)
     async def decorated(*args, **kwargs):
@@ -136,7 +136,7 @@ def produces(model, many = None, as_ = None):
 
       result = await func(*args, **kwargs)
 
-      modelObj = model(many = many)
+      modelObj = (getattr(request.app.models, model) if isinstance(model, str) else model)(many = many)
       if as_ is not None:
         data = {}
         data[as_] = result
@@ -144,18 +144,17 @@ def produces(model, many = None, as_ = None):
         errors = modelObj.get_errors()
         if errors or getattr(modelObj, as_) != result:
           raise ValidationError("{} is not producing a valid {}: {}".format(func.__name__, model, data))
-      else:
+      elif not isinstance(result, modelObj.__class__):
+        if result is None:
+          result = {}
         modelObj.load(result, many = many)
         errors = modelObj.get_errors()
         if errors:
-          raise ValidationError("{} is not producing a valid {}: {}".format(func.__name__, model, result))
+          raise ValidationError("{} is not producing a valid {}: {} -> {}".format(func.__name__, model, result, errors))
+      else:
+        modelObj = result
 
-      result = modelObj
-
-      if not isinstance(modelObj, model) or (many and result.many != many):
-        raise ValidationError("{} is not producing a valid {}".format(func.__name__, model))
-
-      return result
+      return modelObj if renderer is None else renderer(modelObj)
 
     return decorated
   return decorator
