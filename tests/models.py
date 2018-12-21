@@ -65,6 +65,6 @@ class DecoratorsSchema(Schema):
     self.__data__["name"] = schema.__data__["name"]
     return self.__data__["name"]
 
-  @deprecate()
+  @deprecate("This is a deprecation test")
   async def to_deprecate(self, request):
     return True

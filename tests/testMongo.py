@@ -393,11 +393,11 @@ class TestUpdateField(AioTestCase):
     model = models.RealMongoTree()
 
     with self.assertRaises(InvalidOperation):
-      await model.update_field("name", "This will fail", models)
+      await model.update({"name": "This will fail"}, models)
 
   async def testValidationError(self):
     model = models.RealMongoTree(self.table)
     await model.get(_id = self.papers[-1]["_id"])
 
     with self.assertRaises(ValidationError):
-      await model.update_field("path", 25, models)
+      await model.update({"path": 25}, models)
