@@ -43,10 +43,14 @@ class Schema(mSchema):
     return getattr(self, "__errors__", None)
 
   def to_json(self, exclude = None):
-    data = self.get_data()
+    data = self.get_data().copy()
+    if exclude is None and hasattr(self, "exclusions"):
+      exclude = self.exclusions
     if exclude:
-      for member in exclude:
-        del data[member]
+      for element in data if isinstance(data, list) else [data]:
+        for member in exclude:
+          if member in element:
+            del element[member]
     return dumps(data, cls = self.encoder) if hasattr(self, "encoder") else dumps(data)
 
   def to_plain_dict(self, exclude = None):
