@@ -173,7 +173,7 @@ class MongoTree(MongoSchema, Tree):
       # end transaction
       return child.to_plain_dict()
     else:
-      ValidationError("Unexpected child model: {} vs {}".format(child.__name__, self.children_models[as_]))
+      ValidationError("Unexpected child model: {} vs {}".format(child, self.children_models[as_]))
 
   async def children(self, member, models, sort = None):
     if not self.table:
