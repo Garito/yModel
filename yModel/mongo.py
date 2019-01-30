@@ -132,24 +132,38 @@ class MongoSchema(Schema):
     await self.table.delete_one({"_id": self._id})
 
 class MongoTree(MongoSchema, Tree):
-  async def ancestors(self, models, parent = False):
+  async def ancestors(self, models, parent = False, check = None):
     if not self.table:
       raise InvalidOperation("No table")
 
+    if models is None:
+      raise InvalidOperation("No models")
+
     purePath = PurePath(self.path)
     elements = []
-    while purePath.name != '' and purePath.parent != '/':
+    while purePath.name != '':
       doc = await self.table.find_one({"path": str(purePath.parent), "slug": purePath.name})
       if doc:
         model = getattr(models, doc["type"])(self.table)
         model.load(doc)
         if not model.get_errors():
           if parent:
-            return model
+            if check is None or check(model):
+              return model
           else:
             elements.append(model)
 
       purePath = purePath.parent
+
+    doc = await self.table.find_one({"path": ""})
+    if doc:
+      model = getattr(models, doc["type"])(self.table)
+      model.load(doc)
+      if not model.get_errors():
+        if parent or (check is not None and check(model)):
+          return model
+        else:
+          elements.append(model)
 
     elements.reverse()
     return elements

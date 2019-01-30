@@ -61,10 +61,10 @@ class Tree():
     return [child for child, model in (self.children_models or {}).items() if model == type_]
 
   def get_url(self):
-    if self.path and self.slug:
+    if self.path == "":
+      return "/"
+    else:
       return "/{}".format(self.slug) if self.path == "/" else "{}/{}".format(self.path, self.slug)
-
-    raise AttributeError("{} doesn't get url".format(self.__class__.__name__))
 
 class OkSchema(Schema):
   ok = fields.Bool(missing = True)
