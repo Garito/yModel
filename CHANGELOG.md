@@ -57,3 +57,8 @@ children no longer accepts the exclusion of fields (moved to the rendering of th
 update_field has been killed in favor of update that allows to update more than just a field
 
 delete now deletes the children too and uses transactions
+
+#### Acestors includes the root object
+Before this change it doesn't
+
+### The root object can be named now
