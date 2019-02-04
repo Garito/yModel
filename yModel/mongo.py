@@ -189,7 +189,7 @@ class MongoTree(MongoSchema, Tree):
     else:
       ValidationError("Unexpected child model: {} vs {}".format(child, self.children_models[as_]))
 
-  async def children(self, member, models, sort = None):
+  async def children(self, member, models, sort = None, extra_match = None):
     if not self.table:
       raise InvalidOperation("No table")
 
@@ -204,6 +204,8 @@ class MongoTree(MongoSchema, Tree):
       else:
         match = {"$match": {"path": self.get_url(), "type": type_}}
         addOrder = {"$addFields": {"__order": {"$indexOfArray": [order, "$slug"]}}}
+      if extra_match:
+        match["$match"].update(extra_match)
 
       docs = await self.table.aggregate([match, addOrder, sort]).to_list(None)
     else:
