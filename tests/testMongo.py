@@ -356,7 +356,7 @@ class TestDeleteTree(AioTestCase):
     model = models.RealMongoTree(self.table)
     await model.get(_id = self.papers[-1]["_id"])
     url = model.get_url()
-    await model.delete()
+    await model.delete(models)
 
     children = await self.table.find({"path": {"$regex": "^{}".format(url)}}).to_list(None)
 
