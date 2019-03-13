@@ -1,6 +1,7 @@
 from datetime import datetime
 from json import JSONEncoder
 from pathlib import PurePath
+import decimal
 
 import bson
 from pymongo.errors import InvalidOperation
@@ -9,15 +10,6 @@ from marshmallow import fields, ValidationError, missing
 from marshmallow.validate import Range
 
 from yModel import Schema, Tree
-
-class MongoJSONEncoder(JSONEncoder):
-  def default(self, obj):
-    if isinstance(obj, (bson.ObjectId, bson.decimal128.Decimal128)):
-      return str(obj)
-    elif isinstance(obj, datetime):
-      return obj.isoformat(timespec = 'milliseconds')
-
-    return JSONEncoder.default(self, obj)
 
 class ObjectId(fields.Field):
   def _deserialize(self, value, attr, data):
@@ -55,6 +47,25 @@ class Decimal128Range(Range):
       raise ValidationError(self._format_error(value, message))
 
     return value
+
+class DateTime(fields.Field):
+  def _deserialize(self, value, attr, data):
+    return value
+
+  def _serialize(self, value, attr, obj):
+    if value is None:
+      return missing
+
+    return value if isinstance(value, str) else value.isoformat()
+
+class MongoJSONEncoder(JSONEncoder):
+  def default(self, obj):
+    if isinstance(obj, (bson.ObjectId, bson.decimal128.Decimal128, decimal.Decimal)):
+      return str(obj)
+    elif isinstance(obj, datetime):
+      return obj.isoformat(timespec = 'milliseconds')
+
+    return JSONEncoder.default(self, obj)
 
 class NotFound(Exception):
   pass

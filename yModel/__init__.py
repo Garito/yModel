@@ -51,6 +51,7 @@ class Schema(mSchema):
         for member in exclude:
           if member in element:
             del element[member]
+
     return dumps(data, cls = self.encoder) if hasattr(self, "encoder") else dumps(data)
 
   def to_plain_dict(self, exclude = None):
