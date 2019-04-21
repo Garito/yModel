@@ -160,7 +160,7 @@ def produces(model, many = None, as_ = None, renderer = None, description = None
     return decorated
   return decorator
 
-def can_crash(exc, model = ErrorSchema, code = 400, renderer = None, description = None):
+def can_crash(exc, model = ErrorSchema, getter = "__str__", code = 400, renderer = None, description = None):
   def decorator(func):
     if not hasattr(func, "__decorators__"):
       func.__decorators__ = {}
@@ -176,7 +176,9 @@ def can_crash(exc, model = ErrorSchema, code = 400, renderer = None, description
         return result
       except exc as e:
         modelObj = model()
-        modelObj.load({"message": str(e), "code": code})
+        getterMember = getattr(e, getter)
+        message = getterMember() if callable(getterMember) else getterMember      
+        modelObj.load({"message": message, "code": code})
 
         return modelObj if renderer is None else renderer(modelObj.to_plain_dict())
 

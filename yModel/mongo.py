@@ -1,10 +1,10 @@
 from datetime import datetime
-from json import JSONEncoder
+from json import dumps, JSONEncoder
 from pathlib import PurePath
 import decimal
 
 import bson
-from pymongo.errors import InvalidOperation
+from pymongo.errors import InvalidOperation, DuplicateKeyError
 
 from marshmallow import fields, ValidationError, missing
 from marshmallow.validate import Range
@@ -69,6 +69,13 @@ class MongoJSONEncoder(JSONEncoder):
 
 class NotFound(Exception):
   pass
+
+class URIAlreadyExists(Exception):
+  def __init__(self, field):
+    self.field = field
+    
+  def __str__(self):
+    return dumps({self.field:["This {} is already used at this level".format(self.field)]})
 
 class MongoSchema(Schema):
   encoder = MongoJSONEncoder
@@ -143,6 +150,12 @@ class MongoSchema(Schema):
     await self.table.delete_one({"_id": self._id})
 
 class MongoTree(MongoSchema, Tree):
+  async def create(self):
+    try:
+      await super().create()
+    except DuplicateKeyError:
+      raise URIAlreadyExists(self.slugable if hasattr(self, "slugable") else "name")
+
   async def ancestors(self, models, parent = False, check = None):
     if not self.table:
       raise InvalidOperation("No table")
