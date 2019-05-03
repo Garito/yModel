@@ -154,7 +154,7 @@ class MongoTree(MongoSchema, Tree):
     try:
       await super().create()
     except DuplicateKeyError:
-      raise URIAlreadyExists(self.slugable if hasattr(self, "slugable") else "name")
+      raise URIAlreadyExists(self.get_url())
 
   async def ancestors(self, models, parent = False, check = None):
     if not self.table:
