@@ -231,14 +231,14 @@ class MongoTree(MongoSchema, Tree):
       if extra_match:
         match["$match"].update(extra_match)
 
-      docs = await self.table.aggregate([match, addOrder, sort]).to_list(None)
+      aggregation = [match, addOrder, sort]
     else:
       type_ = member.__name__
       aggregation = [{"$match": {"path": self.get_url(), "type": type_}}]
       if sort:
         aggregation.append(sort)
 
-      docs = await self.table.aggregate(aggregation).to_list(None)
+    docs = await self.table.aggregate(aggregation).to_list(None)
 
     model_class = getattr(models, type_)
     children = model_class(self.table, many = True)
