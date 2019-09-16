@@ -23,6 +23,9 @@ class Schema(mSchema):
 
   @pre_load
   def slug_preload(self, data):
+    if "type_" in self.fields.keys() and ("type_" not in data or not data["type_"]):
+      data["type_"] = self.__class__.__name__
+
     if "slug" in self.fields.keys() and ("slug" not in data or not data["slug"]):
       slugable = self.slugable if hasattr(self, "slugable") else "name"
       data["slug"] = slugify(data.get(slugable, "")) if isinstance(slugable, str) else slugable(data)
@@ -177,7 +180,7 @@ def can_crash(exc, model = ErrorSchema, getter = "__str__", code = 400, renderer
       except exc as e:
         modelObj = model()
         getterMember = getattr(e, getter)
-        message = getterMember() if callable(getterMember) else getterMember      
+        message = getterMember() if callable(getterMember) else getterMember
         modelObj.load({"message": message, "code": code})
 
         return modelObj if renderer is None else renderer(modelObj.to_plain_dict())

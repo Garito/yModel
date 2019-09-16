@@ -73,7 +73,7 @@ class NotFound(Exception):
 class URIAlreadyExists(Exception):
   def __init__(self, field):
     self.field = field
-    
+
   def __str__(self):
     return dumps({self.field:["This {} is already used at this level".format(self.field)]})
 
@@ -89,6 +89,9 @@ class MongoSchema(Schema):
       raise InvalidOperation("No data")
 
     result = await self.table.insert_one(data)
+
+    if hasattr(self, "__post_create__"):
+      await self.__post_create__()
 
     if result.inserted_id:
       self.__data__["_id"] = result.inserted_id
@@ -249,7 +252,7 @@ class MongoTree(MongoSchema, Tree):
   async def update(self, data, models = None):
     if not self.table:
       raise InvalidOperation("No table")
- 
+
     # Start mongo transaction
     async with await self.table.database.client.start_session() as s:
       async with s.start_transaction():
