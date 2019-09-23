@@ -102,8 +102,9 @@ class MongoSchema(Schema):
 
     query = kwargs.pop("query", kwargs)
     many = kwargs.pop("many", False)
+    limit = kwargs.pop("limit", None)
 
-    data = await self.table.find(query).to_list(None) if many else await self.table.find_one(query)
+    data = await self.table.find(query).to_list(limit) if many else await self.table.find_one(query)
     if not data:
       raise NotFound(query)
 
