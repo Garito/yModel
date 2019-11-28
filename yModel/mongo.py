@@ -101,10 +101,20 @@ class MongoSchema(Schema):
       raise InvalidOperation("No table")
 
     query = kwargs.pop("query", kwargs)
+    sort = kwargs.pop("sort", None)
     many = kwargs.pop("many", False)
     limit = kwargs.pop("limit", None)
 
-    data = await self.table.find(query).to_list(limit) if many else await self.table.find_one(query)
+    if many:
+      data = await self.table.find(query).sort(sort).to_list(limit) if sort else await self.table.find(query).to_list(limit)
+    else:
+      if sort:
+        docs = await self.table.find(query).sort(sort).to_list(1)
+        data = docs[0] if docs else None
+      else:
+        data = await self.table.find_one(query)
+
+    # data = await self.table.find(query).to_list(limit) if many else await self.table.find_one(query)
     if not data:
       raise NotFound(query)
 
